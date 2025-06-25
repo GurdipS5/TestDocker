@@ -1,0 +1,23 @@
+name: Test LTSC 2022 Docker
+
+on:
+  push:
+  workflow_dispatch:  # Manual trigger button
+
+jobs:
+  test-windows-container:
+    runs-on: windows-2022  # GitHub provides this for free
+    
+    steps:
+    - uses: actions/checkout@v4
+      
+    - name: Build and test LTSC 2022 container
+      run: |
+        # Build the container
+        docker build -t test-ltsc2022 .
+        
+        # Run the test
+        docker run --rm test-ltsc2022
+        
+        # Show results
+        Write-Host "✅ LTSC 2022 container test complete!" -ForegroundColor Green
