@@ -2,22 +2,42 @@ name: Test LTSC 2022 Docker
 
 on:
   push:
-  workflow_dispatch:  # Manual trigger button
+    branches: [ main ]
+  workflow_dispatch: # Allows manual triggering
 
 jobs:
-  test-windows-container:
-    runs-on: windows-2022  # GitHub provides this for free
+  test-ltsc2022:
+    runs-on: windows-2022
     
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
       
-    - name: Build and test LTSC 2022 container
+    - name: List files in repository
       run: |
-        # Build the container
-        docker build -t test-ltsc2022 .
+        Write-Host "Files in repository:" -ForegroundColor Yellow
+        Get-ChildItem -Name
         
-        # Run the test
-        docker run --rm test-ltsc2022
+    - name: Verify test.ps1 exists
+      run: |
+        if (Test-Path "test.ps1") {
+          Write-Host "✅ test.ps1 found" -ForegroundColor Green
+        } else {
+          Write-Host "❌ test.ps1 missing" -ForegroundColor Red
+          exit 1
+        }
         
-        # Show results
-        Write-Host "✅ LTSC 2022 container test complete!" -ForegroundColor Green
+    - name: Build Docker image
+      run: |
+        Write-Host "Building LTSC 2022 Docker image..." -ForegroundColor Yellow
+        docker build -t ltsc2022-httpbin-test .
+        
+    - name: Run Docker container test
+      run: |
+        Write-Host "Running LTSC 2022 container test..." -ForegroundColor Yellow
+        docker run --rm ltsc2022-httpbin-test
+        
+    - name: Test container interactively
+      run: |
+        Write-Host "Checking container contents..." -ForegroundColor Yellow
+        docker run --rm ltsc2022-httpbin-test powershell -Command "Get-ChildItem C:\ | Where-Object Name -eq 'test.ps1'"
